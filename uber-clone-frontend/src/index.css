@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif; /* Use a modern font */
+    background-color: #f9fafb; /* Light gray background */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700; /* Bold headings */
+}
+
+button {
+    transition: all 0.2s ease-in-out; /* Smooth hover effects */
+}
+
+input, textarea {
+    border: 1px solid #d1d5db; /* Light border for inputs */
+    border-radius: 0.375rem; /* Rounded corners */
+    padding: 0.75rem; /* Consistent padding */
+    transition: border-color 0.2s ease-in-out; /* Smooth focus effect */
+}
+
+input:focus, textarea:focus {
+    border-color: #3b82f6; /* Blue border on focus */
+    outline: none; /* Remove default outline */
+}
