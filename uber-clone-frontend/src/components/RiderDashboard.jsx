@@ -6,18 +6,17 @@ import { useSocket } from '../context/SocketContext';
 import { MapContext } from '../context/MapContext';
 
 const RiderDashboard = () => {
-    const { isMapLoaded } = useContext(MapContext); // Get map loading state
-    const [rides, setRides] = useState([]); // Ride history
-    const [activeRide, setActiveRide] = useState(null); // Current active ride
-    const [driverLocation, setDriverLocation] = useState(null); // Driver's real-time location
-    const [route, setRoute] = useState(null); // Encoded route for DirectionsRenderer
+    const { isMapLoaded } = useContext(MapContext);
+    const [rides, setRides] = useState([]);
+    const [activeRide, setActiveRide] = useState(null);
+    const [driverLocation, setDriverLocation] = useState(null);
+    const [route, setRoute] = useState(null);
     const socket = useSocket();
 
-    // Fetch ride history
     useEffect(() => {
         const fetchRides = async () => {
             try {
-                const res = await apiClient.get('/rides/history'); // Fetch ride history
+                const res = await apiClient.get('/rides/history');
                 setRides(res.data);
             } catch (err) {
                 console.error(err.response?.data?.msg || 'An error occurred');
@@ -26,182 +25,210 @@ const RiderDashboard = () => {
         fetchRides();
     }, []);
 
-    // Listen for ride acceptance
     useEffect(() => {
         if (socket) {
             socket.on('rideAccepted', async ({ rideId, driverName, driverLocation }) => {
-                setActiveRide({
-                    rideId,
-                    driverName,
-                    status: 'accepted',
-                });
-                setDriverLocation(driverLocation); // Update driver's initial location
-
-                // Fetch the route for the active ride
+                setActiveRide({ rideId, driverName, status: 'accepted' });
+                setDriverLocation(driverLocation);
                 try {
-                    const pickupCoords = { lat: driverLocation.lat, lng: driverLocation.lng }; // Initial driver location
-                    const dropoffCoords = { lat: 19.076, lng: 72.8777 }; // Default dropoff (replace with actual dropoff)
+                    const pickupCoords = { lat: driverLocation.lat, lng: driverLocation.lng };
+                    const dropoffCoords = { lat: 19.076, lng: 72.8777 };
                     const res = await apiClient.post('/rides/fetch-route', { pickupCoords, dropoffCoords });
-                    setRoute(res.data.route); // Set the encoded route for DirectionsRenderer
+                    setRoute(res.data.route);
                 } catch (err) {
                     console.error('Error fetching route:', err.response?.data?.msg || 'An error occurred');
                 }
             });
         }
-        return () => {
-            if (socket) {
-                socket.off('rideAccepted');
-            }
-        };
+        return () => socket?.off('rideAccepted');
     }, [socket]);
 
-    // Listen for driver location updates
     useEffect(() => {
         if (socket) {
             socket.on('driverLocationUpdated', ({ rideId, driverLocation }) => {
-                if (activeRide && activeRide.rideId === rideId) {
-                    setDriverLocation(driverLocation); // Update driver's real-time location
-                }
+                if (activeRide?.rideId === rideId) setDriverLocation(driverLocation);
             });
         }
-        return () => {
-            if (socket) {
-                socket.off('driverLocationUpdated');
-            }
-        };
+        return () => socket?.off('driverLocationUpdated');
     }, [socket, activeRide]);
 
-    // Listen for ride cancellation
     useEffect(() => {
         if (socket) {
             socket.on('rideCanceled', ({ rideId }) => {
-                if (activeRide && activeRide.rideId === rideId) {
-                    setActiveRide(null); // Clear the active ride
-                    setDriverLocation(null); // Clear the driver's location
-                    setRoute(null); // Clear the route
+                if (activeRide?.rideId === rideId) {
+                    setActiveRide(null);
+                    setDriverLocation(null);
+                    setRoute(null);
                 }
-
-                // Update the ride history to reflect the canceled ride
-                setRides((prevRides) =>
-                    prevRides.map((ride) =>
-                        ride._id === rideId ? { ...ride, status: 'canceled' } : ride
-                    )
-                );
+                setRides(prev => prev.map(ride => ride._id === rideId ? {...ride, status: 'canceled'} : ride));
             });
         }
-        return () => {
-            if (socket) {
-                socket.off('rideCanceled');
-            }
-        };
+        return () => socket?.off('rideCanceled');
     }, [socket, activeRide]);
 
-    // Function to cancel a ride
     const cancelRide = async (rideId) => {
         try {
-            await apiClient.post(`/rides/cancel-ride/${rideId}`); // Make sure the URL matches the backend route
-            console.log('Ride canceled successfully');
-
-            // Update the ride history to reflect the canceled ride
-            setRides((prevRides) =>
-                prevRides.map((ride) =>
-                    ride._id === rideId ? { ...ride, status: 'canceled' } : ride
-                )
-            );
+            await apiClient.post(`/rides/cancel-ride/${rideId}`);
+            setRides(prev => prev.map(ride => ride._id === rideId ? {...ride, status: 'canceled'} : ride));
         } catch (error) {
             console.error('Error canceling ride:', error.response?.data?.msg || 'An error occurred');
         }
     };
 
-    // Map container styles
     const mapStyles = {
         height: '300px',
         width: '100%',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
     };
 
-    const defaultCenter = {
-        lat: 19.076, // Default latitude (Mumbai)
-        lng: 72.8777, // Default longitude (Mumbai)
-    };
+    const defaultCenter = { lat: 19.076, lng: 72.8777 };
 
     return (
-        <div className="p-8 bg-gray-100 min-h-screen">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Rider Dashboard</h2>
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-cyan-50 p-8">
+            <div className="max-w-6xl mx-auto">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                    <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-blue-700 bg-clip-text text-transparent mb-4 md:mb-0">
+                        Rider Dashboard
+                    </h2>
+                    <Link
+                        to="/request-ride"
+                        className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                    >
+                        Request a Ride
+                    </Link>
+                </div>
 
-            {/* Request Ride Button */}
-            <Link
-                to="/request-ride"
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
-            >
-                Request a Ride
-            </Link>
+                {/* Active Ride Section */}
+                {activeRide && (
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-8 border border-white/20">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-700 bg-clip-text text-transparent mb-6">
+                            Active Ride
+                        </h3>
 
-            {/* Active Ride Section */}
-            {activeRide && (
-                <div className="mt-8 p-6 bg-white rounded-lg shadow-lg">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4">Active Ride</h3>
-                    <div className="space-y-2">
-                        <p><strong>Status:</strong> {activeRide.status}</p>
-                        <p><strong>Driver:</strong> {activeRide.driverName}</p>
+                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                            <div className="space-y-3">
+                                <div className="flex items-center space-x-3">
+                                    <div className="bg-cyan-100 p-2 rounded-lg">
+                                        <span className="text-2xl">🚕</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-cyan-600 font-medium">Driver</p>
+                                        <p className="text-gray-700">{activeRide.driverName}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <div className="bg-cyan-100 p-2 rounded-lg">
+                                        <span className="text-2xl">📌</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-cyan-600 font-medium">Status</p>
+                                        <p className="text-gray-700 capitalize">{activeRide.status}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {isMapLoaded && (
+                                <GoogleMap
+                                    mapContainerStyle={mapStyles}
+                                    zoom={13}
+                                    center={driverLocation || defaultCenter}
+                                >
+                                    {driverLocation && (
+                                        <Marker
+                                            position={{ lat: driverLocation.lat, lng: driverLocation.lng }}
+                                            icon={{
+                                                path: window.google.maps.SymbolPath.CIRCLE,
+                                                scale: 7,
+                                                fillColor: '#06b6d4',
+                                                fillOpacity: 1,
+                                                strokeColor: '#ffffff',
+                                                strokeWeight: 2
+                                            }}
+                                        />
+                                    )}
+                                    {route && <DirectionsRenderer directions={{ routes: [{ overview_polyline: route }] }} />}
+                                </GoogleMap>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={() => cancelRide(activeRide.rideId)}
+                            className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+                        >
+                            Cancel Ride
+                        </button>
                     </div>
+                )}
 
-                    {/* Real-Time Driver Location Map */}
-                    {isMapLoaded && (
-                        <div className="mt-4">
-                            <GoogleMap
-                                mapContainerStyle={mapStyles}
-                                zoom={13}
-                                center={driverLocation ? { lat: driverLocation.lat, lng: driverLocation.lng } : defaultCenter}
-                            >
-                                {/* Render the driver's marker */}
-                                {driverLocation && (
-                                    <Marker position={{ lat: driverLocation.lat, lng: driverLocation.lng }} label="Driver" />
-                                )}
+                {/* Ride History Section */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-700 bg-clip-text text-transparent mb-6">
+                        Ride History
+                    </h3>
 
-                                {/* Render the route between pickup and dropoff */}
-                                {route && <DirectionsRenderer directions={{ routes: [{ overview_polyline: route }] }} />}
-                            </GoogleMap>
+                    {rides.length === 0 ? (
+                        <div className="text-center p-6 text-gray-500">
+                            No ride history available
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {rides.map((ride) => (
+                                <div key={ride._id} className="bg-gradient-to-br from-indigo-50 to-cyan-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                                    <div className="grid md:grid-cols-4 gap-4">
+                                        <div>
+                                            <p className="text-sm text-cyan-600 font-medium">Pickup</p>
+                                            <p className="text-gray-700">{ride.pickupLocation}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-cyan-600 font-medium">Dropoff</p>
+                                            <p className="text-gray-700">{ride.dropoffLocation}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-cyan-600 font-medium">Price</p>
+                                            <p className="text-gray-700">₹{ride.price}</p>
+                                        </div>
+                                        <div className="flex flex-col justify-between">
+                                            <div>
+                                                <p className="text-sm text-cyan-600 font-medium">Status</p>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    ride.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                        ride.status === 'canceled' ? 'bg-red-100 text-red-800' :
+                                                            'bg-cyan-100 text-cyan-800'
+                                                }`}>
+                                                    {ride.status}
+                                                </span>
+                                            </div>
+                                            {['pending', 'accepted'].includes(ride.status) && (
+                                                <button
+                                                    onClick={() => cancelRide(ride._id)}
+                                                    className="mt-2 flex items-center justify-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-2 px-4 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="w-4 h-4 text-red-100"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                        strokeWidth="2"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M6 18L18 6M6 6l12 12"
+                                                        />
+                                                    </svg>
+                                                    <span className="text-sm font-medium">Cancel Ride</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
-
-                    {/* Cancel Ride Button */}
-                    <button
-                        onClick={() => cancelRide(activeRide.rideId)}
-                        className="mt-4 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300 ease-in-out"
-                    >
-                        Cancel Ride
-                    </button>
                 </div>
-            )}
-
-            {/* Ride History Section */}
-            <div className="mt-8">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">Ride History</h3>
-                {rides.length === 0 ? (
-                    <p className="text-gray-500">No ride history available.</p>
-                ) : (
-                    <ul className="space-y-4">
-                        {rides.map((ride) => (
-                            <li key={ride._id} className="p-4 bg-white rounded-lg shadow-sm">
-                                <p><strong>Pickup:</strong> {ride.pickupLocation}</p>
-                                <p><strong>Dropoff:</strong> {ride.dropoffLocation}</p>
-                                <p><strong>Distance:</strong> {ride.distance}</p>
-                                <p><strong>Price:</strong> ${ride.price}</p>
-                                <p><strong>Status:</strong> {ride.status}</p>
-
-                                {/* Cancel Button for Pending or Accepted Rides */}
-                                {['pending', 'accepted'].includes(ride.status) && (
-                                    <button
-                                        onClick={() => cancelRide(ride._id)}
-                                        className="mt-2 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300 ease-in-out"
-                                    >
-                                        Cancel Ride
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
             </div>
         </div>
     );

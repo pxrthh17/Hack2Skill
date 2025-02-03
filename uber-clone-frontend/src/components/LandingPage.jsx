@@ -1,132 +1,277 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from './context/AuthContext.jsx';
 
-const LandingPage = () => {
+const App = () => {
+    const { user, logout } = useAuth();
+
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="min-h-screen bg-gray-100 overflow-x-hidden">
+            {/* Navigation */}
+            <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md border-b border-white/10 bg-indigo-900/30">
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                    <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        UberClone
+                    </Link>
+                    <div className="space-x-6 flex items-center">
+                        {!user && (
+                            <>
+                                <Link
+                                    to="/register"
+                                    className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-lg
+                                    hover:shadow-xl hover:scale-105 transition-all duration-300"
+                                >
+                                    Register
+                                </Link>
+                                <Link
+                                    to="/login"
+                                    className="px-4 py-2 border-2 border-cyan-300 text-cyan-300 rounded-lg
+                                    hover:bg-cyan-300/10 hover:border-cyan-400 hover:text-cyan-400 transition-all duration-300"
+                                >
+                                    Login
+                                </Link>
+                            </>
+                        )}
+                        {user && (
+                            <>
+                                <Link
+                                    to="/dashboard"
+                                    className="text-white/80 hover:text-white transition-colors duration-300"
+                                >
+                                    Dashboard
+                                </Link>
+                                <button
+                                    onClick={logout}
+                                    className="text-red-300 hover:text-red-400 transition-colors duration-300"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </nav>
+
             {/* Hero Section */}
-            <section className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white py-20">
-                <div className="container mx-auto px-4 text-center">
-                    <h1 className="text-5xl font-bold mb-4 animate-fade-in">Welcome to Uber Clone</h1>
-                    <p className="text-xl mb-8 animate-fade-in">Your ultimate ride-sharing solution with real-time tracking and dynamic pricing.</p>
-                    <div className="space-x-4 animate-fade-in">
+            <section className="relative pt-32 bg-gradient-to-br from-indigo-900 via-blue-900 to-cyan-900 text-white py-28 overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-20 -left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-screen opacity-20 animate-blob animation-delay-2000"></div>
+                    <div className="absolute top-40 -right-20 w-96 h-96 bg-blue-400 rounded-full mix-blend-screen opacity-20 animate-blob animation-delay-3000"></div>
+                </div>
+
+                <div className="container mx-auto px-4 text-center relative">
+                    <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in-up">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
+                            Smart Urban Mobility
+                        </span>
+                    </h1>
+                    <p className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto animate-fade-in-up animation-delay-100">
+                        Revolutionize your commute with AI-powered ride matching, real-time tracking, and eco-friendly transportation solutions.
+                    </p>
+                    <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in-up animation-delay-200">
                         <Link
-                            to="/register"
-                            className="inline-block px-6 py-3 bg-white text-indigo-600 font-medium rounded-md shadow-md hover:bg-gray-100 transition duration-300"
+                            to={user ? "/dashboard" : "/register"}
+                            className="px-8 py-4 bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-semibold rounded-xl
+                            hover:shadow-2xl hover:scale-105 transition-all duration-300"
                         >
-                            Register
+                            {user ? "Go to Dashboard" : "Get Started Free"}
                         </Link>
-                        <Link
-                            to="/login"
-                            className="inline-block px-6 py-3 bg-transparent border border-white text-white font-medium rounded-md shadow-md hover:bg-white hover:text-indigo-600 transition duration-300"
-                        >
-                            Login
-                        </Link>
+                        {!user && (
+                            <Link
+                                to="/login"
+                                className="px-8 py-4 border-2 border-cyan-300 text-cyan-300 font-semibold rounded-xl
+                                hover:bg-cyan-300/10 hover:border-cyan-400 hover:text-cyan-400 transition-all duration-300"
+                            >
+                                Existing User? Login
+                            </Link>
+                        )}
                     </div>
                 </div>
             </section>
 
-            {/* Features Section */}
-            <section className="py-20 bg-gray-100">
+            {/* How It Works Section */}
+            <section className="py-24 bg-white">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-4xl font-bold text-center text-gray-800 mb-12">Why Choose Us?</h2>
+                    <h2 className="text-4xl font-bold text-center mb-16">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-500">
+                            How It Works
+                        </span>
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        {[
+                            { icon: '📱', title: 'Book Ride', desc: 'Instantly request a ride through our mobile app or website' },
+                            { icon: '🚗', title: 'Match Driver', desc: 'AI matches you with the nearest available driver' },
+                            { icon: '📍', title: 'Track Live', desc: 'Real-time GPS tracking of your driver\'s arrival' },
+                            { icon: '💳', title: 'Pay Secure', desc: 'Cashless payments with multiple payment options' }
+                        ].map((step, idx) => (
+                            <div
+                                key={idx}
+                                className="p-8 bg-gradient-to-br from-indigo-50 to-cyan-50 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                            >
+                                <div className="text-4xl mb-4">{step.icon}</div>
+                                <h3 className="text-2xl font-bold text-indigo-900 mb-2">{step.title}</h3>
+                                <p className="text-gray-600">{step.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Safety Features Section */}
+            <section className="py-24 bg-indigo-50">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-4xl font-bold text-center mb-16">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-500">
+                            Your Safety First
+                        </span>
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Feature 1 */}
-                        <div className="text-center p-6 bg-white rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-12 w-12 mx-auto text-indigo-500 mb-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        {[
+                            { icon: '🛡️', title: 'Driver Verification', desc: 'Rigorous background checks for all drivers' },
+                            { icon: '📲', title: 'Share Ride Details', desc: 'Real-time ride sharing with emergency contacts' },
+                            { icon: '🚨', title: '24/7 Support', desc: 'Instant access to emergency assistance' }
+                        ].map((feature, idx) => (
+                            <div
+                                key={idx}
+                                className="p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                />
-                            </svg>
-                            <h3 className="text-xl font-semibold text-gray-800 mb-2">Real-Time Tracking</h3>
-                            <p className="text-gray-600">Track your driver in real-time and know exactly when they'll arrive.</p>
-                        </div>
-
-                        {/* Feature 2 */}
-                        <div className="text-center p-6 bg-white rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-12 w-12 mx-auto text-indigo-500 mb-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-6a2 2 0 11-4 0 2 2 0 014 0z"
-                                />
-                            </svg>
-                            <h3 className="text-xl font-semibold text-gray-800 mb-2">Dynamic Pricing</h3>
-                            <p className="text-gray-600">Get fair prices based on demand, distance, and availability.</p>
-                        </div>
-
-                        {/* Feature 3 */}
-                        <div className="text-center p-6 bg-white rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-12 w-12 mx-auto text-indigo-500 mb-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                />
-                            </svg>
-                            <h3 className="text-xl font-semibold text-gray-800 mb-2">Secure Payments</h3>
-                            <p className="text-gray-600">Pay securely with multiple payment options.</p>
-                        </div>
+                                <div className="text-4xl mb-4">{feature.icon}</div>
+                                <h3 className="text-2xl font-bold text-indigo-900 mb-2">{feature.title}</h3>
+                                <p className="text-gray-600">{feature.desc}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Testimonials Section */}
-            <section className="py-20 bg-indigo-600 text-white">
+            {/* Pricing Section */}
+            <section className="py-24 bg-gradient-to-br from-indigo-900 to-blue-900 text-white">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-4xl font-bold text-center mb-12">What Our Users Say</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* Testimonial 1 */}
-                        <div className="p-6 bg-indigo-700 rounded-lg shadow-lg">
-                            <p className="text-lg italic mb-4">"The app is amazing! Real-time tracking makes it so convenient."</p>
-                            <p className="font-bold">- Sarah L.</p>
-                        </div>
+                    <h2 className="text-4xl font-bold text-center mb-16">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
+                            Flexible Pricing
+                        </span>
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                title: 'Basic',
+                                price: '1.5x',
+                                features: ['Standard rides', 'Regular vehicles', 'Basic support', 'Cash payments']
+                            },
+                            {
+                                title: 'Premium',
+                                price: '2.0x',
+                                features: ['Priority rides', 'Luxury vehicles', '24/7 support', 'Advanced safety features'],
+                                popular: true
+                            },
+                            {
+                                title: 'Business',
+                                price: 'Custom',
+                                features: ['Dedicated fleet', 'Corporate billing', 'Multiple users', 'Premium support']
+                            }
+                        ].map((plan, idx) => (
+                            <div
+                                key={idx}
+                                className={`p-8 rounded-2xl ${plan.popular ? 'bg-gradient-to-br from-cyan-500 to-blue-600' : 'bg-white/10'} 
+                                backdrop-blur-sm hover:shadow-xl transition-shadow duration-300`}
+                            >
+                                {plan.popular && (
+                                    <div className="bg-white text-blue-900 px-4 py-1 rounded-full text-sm font-bold mb-4 w-max">
+                                        Most Popular
+                                    </div>
+                                )}
+                                <h3 className="text-3xl font-bold mb-2">{plan.title}</h3>
+                                <div className="text-4xl font-bold mb-6">{plan.price}</div>
+                                <ul className="space-y-3">
+                                    {plan.features.map((feature, fIdx) => (
+                                        <li key={fIdx} className="flex items-center">
+                                            <span className="mr-2">✓</span>
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-                        {/* Testimonial 2 */}
-                        <div className="p-6 bg-indigo-700 rounded-lg shadow-lg">
-                            <p className="text-lg italic mb-4">"Dynamic pricing is fair and transparent. I love it!"</p>
-                            <p className="font-bold">- John D.</p>
-                        </div>
-
-                        {/* Testimonial 3 */}
-                        <div className="p-6 bg-indigo-700 rounded-lg shadow-lg">
-                            <p className="text-lg italic mb-4">"The drivers are always on time, and payments are secure."</p>
-                            <p className="font-bold">- Emily R.</p>
+            {/* App Download Section */}
+            <section className="py-24 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="bg-gradient-to-br from-indigo-600 to-cyan-500 rounded-3xl p-12 text-white">
+                        <div className="flex flex-col md:flex-row items-center justify-between">
+                            <div className="md:w-1/2 mb-8 md:mb-0">
+                                <h2 className="text-4xl font-bold mb-4">Get the App</h2>
+                                <p className="text-xl mb-6">Download our app for faster bookings and exclusive features</p>
+                                <div className="flex gap-4">
+                                    <button className="bg-black/20 hover:bg-black/30 px-6 py-3 rounded-xl transition-all duration-300">
+                                        <span className="flex items-center">
+                                            <span className="text-2xl mr-2">🍏</span>
+                                            App Store
+                                        </span>
+                                    </button>
+                                    <button className="bg-black/20 hover:bg-black/30 px-6 py-3 rounded-xl transition-all duration-300">
+                                        <span className="flex items-center">
+                                            <span className="text-2xl mr-2">🤖</span>
+                                            Play Store
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="md:w-1/2 flex justify-center">
+                                <div className="relative w-64 h-64 bg-white/10 backdrop-blur-sm rounded-2xl transform rotate-6 shadow-2xl">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="text-6xl">📱</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="bg-gray-800 text-white py-8">
-                <div className="container mx-auto px-4 text-center">
-                    <p>&copy; 2023 Uber Clone. All rights reserved.</p>
-                    <div className="mt-4 space-x-4">
-                        <a href="#" className="hover:text-indigo-500 transition duration-300">Privacy Policy</a>
-                        <a href="#" className="hover:text-indigo-500 transition duration-300">Terms of Service</a>
+            <footer className="bg-indigo-900 text-white py-12">
+                <div className="container mx-auto px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">UberClone</h3>
+                            <p className="text-gray-400">Redefining urban transportation since 2023</p>
+                        </div>
+                        <div>
+                            <h4 className="font-bold mb-4">Company</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li><a href="#" className="hover:text-cyan-400 transition-colors">About</a></li>
+                                <li><a href="#" className="hover:text-cyan-400 transition-colors">Careers</a></li>
+                                <li><a href="#" className="hover:text-cyan-400 transition-colors">Blog</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold mb-4">Legal</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li><a href="#" className="hover:text-cyan-400 transition-colors">Privacy</a></li>
+                                <li><a href="#" className="hover:text-cyan-400 transition-colors">Terms</a></li>
+                                <li><a href="#" className="hover:text-cyan-400 transition-colors">Security</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold mb-4">Connect</h4>
+                            <div className="flex space-x-4">
+                                {['📘', '📷', '🐦', '💼'].map((icon, idx) => (
+                                    <button
+                                        key={idx}
+                                        className="text-2xl hover:text-cyan-400 transition-colors"
+                                    >
+                                        {icon}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="border-t border-white/10 mt-12 pt-8 text-center text-gray-400">
+                        <p>&copy; 2023 UberClone. All rights reserved.</p>
                     </div>
                 </div>
             </footer>
@@ -134,4 +279,4 @@ const LandingPage = () => {
     );
 };
 
-export default LandingPage;
+export default App;
